@@ -99,37 +99,6 @@ def lyric_parse(lyric):
 
 	return (artist + " - " + title,lylink)
 
-def food():
-	msg = '''[아침 : 8시]
-사과(중간크기) 1/2개
-닭가슴살 1개 (100g)
-야채샐러드 1접시 (100g)
-고구마 (중간크기) 1개 (150g)
-아몬드 50알
-종합비타민 1알 (식사직후)
-
-[간식 : 11시]
-계란흰자 5개
-아몬드 40알
-
-[점심 : 14시]
-닭가슴살(roasted) 1개 (100g)
-호두 10조각
-야채샐러드 1접시 (100g)
-
-[간식 : 17시]
-아몬드 15알
-삶은계란(흰자) 5개
-사과 (중간크기, 운동직후) 1/2개
-
-[저녁 : 20시]
-삶은계란 (흰자) 7개'''
-	
-	msg = msg.replace('''\n''','''\\n''')
-	print(msg)
-	return msg
-
- 
 app = Flask(__name__)
 
 # 메시지는 최대 300자까지 받을수있음 
@@ -147,10 +116,6 @@ def message():
 			return '''{ "message": { "text" : "''' + song_info[0] + '''" , "message_button" : { "label" : "곡정보 확인", "url": "'''+ song_info[1] + '''" }}}'''
 		except Exception as e:
 			return '''{ "message" : { "text" : "해당하는 가사가 없습니다."} }'''
-	elif userText[0] == '식단':
-		msg = food()
-		return '''{ "message" : { "text" : "''' + msg + '''"} }'''
-
 	else:
 		if len(userMessage['content']) >= 300:
 			responseText = "300자 이상의 교정은 이곳에서!"
