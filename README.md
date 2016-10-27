@@ -1,2 +1,2 @@
-# pofo
-portfolio_code
+# 포트폴리오
+2chaes의 포트폴리오 입니다.
