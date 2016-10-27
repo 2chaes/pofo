@@ -66,6 +66,68 @@ def th_imgmsg(chat_id, templink, tempname, temptitle, i):
         except:
             return
 
+def div_sentence(words,lang):
+    resstr=""
+    while len(words) > 200:
+        stat='\n'
+        tempn=words[:200].find('\n')
+        if tempn != -1 and words[tempn-1] in '.,?':
+            stat = words[tempn-1]+'\n'
+
+        if tempn == -1:
+            tempn=words[:200].rfind('.')
+            if words[tempn+1] == ' ':
+                stat='. '
+            else:
+                stat='.'
+
+        if tempn == -1:
+            tempn=words[:200].rfind(',')
+            if words[tempn+1] == ' ':
+                stat='. '
+            else:
+                stat=', '
+
+        if tempn == -1:
+            tempn=words.find('.')
+            stat='. '
+            resstr+=words[:tempn+1].strip()
+            words=words[tempn+1:]
+        else:
+            resstr+=Trans_lang(words[:tempn+1].strip(),lang)[:-1]+stat
+
+            words=words[tempn+1:]
+
+    resstr+=Trans_lang(words.strip(),lang)
+    return resstr
+
+# lang이 0이면 Kor2Eng, 1이면 Eng2Kor
+def Trans_lang(msg, lang):
+    global isE2K
+
+    if len(msg.strip()) == 0:
+        return ""
+
+    # trans switch
+    if isE2K != lang:
+        isE2K=lang
+        swit_btn.click()
+
+    # input 전송
+    in_element.send_keys(msg.strip())
+
+    # 번역 버튼 검색, 클릭
+    trans_btn.click()
+
+    # 결과 기다렸다가 반환
+    while not inout[1].text:
+        pass
+    trans_res = inout[1].text
+
+    in_element.clear()
+    return trans_res
+
+
 
 
 #영타를 한글로 변환해주는 명령어에 필요한 함수
@@ -712,6 +774,25 @@ def on_chat_message(msg):
 
 # /eh 처리 영역 끝
 
+# 번역부분 시작
+    elif listtext[0] == '/tr':
+        if len(listtext) < 2 or len(liststr.strip()) == 0:
+            bot.sendMessage(chat_id, "\"<code>/tr 번역할 내용</code>\" 의 형태로 입력해주세요. 자세한 명령은 <code>/help tr</code>에서 확인가능합니다.", parse_mode='HTML', reply_to_message_id=msg_id)
+            return
+        alpha_n=0                                                                                                                     for t in liststr:
+            if t in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ':
+                alpha_n+=1
+
+        print(alpha_n,len(liststr),alpha_n/len(liststr))
+
+        if alpha_n/len(liststr) > 0.60:
+            # 영->한 번역
+            trans_res=div_sentence(liststr,1)
+        else:
+            trans_res=div_sentence(liststr,0)
+
+        bot.sendMessage(chat_id, trans_res, reply_to_message_id=msg_id)
+# 번역부분 끝
 
     else:
         return
@@ -812,6 +893,25 @@ whitelist=["lcs901221"]
 # 30초 이상 로드가 된다면 에러로 간주하고 timeout
 browser = webdriver.PhantomJS()
 browser.set_page_load_timeout(30)
+
+# 번역기 부분
+isE2K=0
+trans_browser = webdriver.Firefox()
+url="http://labspace.naver.com/nmt/"
+trans_browser.get(url)
+
+# input area
+inout=trans_browser.find_elements_by_tag_name("app-text-input")
+in_element = inout[0].find_element_by_tag_name("textarea")
+
+# trans_btn
+trans = trans_browser.find_element_by_xpath("//*[@class='menu-target']")
+trans_btn=trans.find_element_by_tag_name("button")
+
+# trans_switch
+swit = trans_browser.find_element_by_xpath("//*[@class='menu-source']")
+swit_btn=swit.find_element_by_tag_name("app-button-switch")
+
 
 # telepot token 입력 부분.
 bot = telepot.Bot(''' 봇파더에서 제공하는 토큰을 입력하세요 ''')
